@@ -4,16 +4,16 @@ require "net/http"
 def license_fetch_args
   Homebrew::CLI::Parser.new do
     usage_banner <<~EOS
-      `license` [<options>]
+      `license-fetch` [<options>] [<formula>]
 
-      Get or modify the licenses of formulae.
+      Fetch license information and append it to `report.csv`. Specify formulae
+      to fetch license information for only those formulae, or with `--tap` to
+      fetch formula information for a single tap.
     EOS
-    switch "--fetch",
-           description: "Fetch license information and append to `report.csv`."
-    switch "--rewrite",
-           description: "Rewrite existing formula with license information described in `report.csv`."
     switch "--rate-limit",
-           description: "Rate limit GitHub requests" 
+           description: "Rate limit GitHub requests"
+    switch "--help-pls",
+         description: "Print help"
     flag "--tap=",
          description: "The tap to fetch formula from"
     flag "--github-key=",
@@ -90,8 +90,13 @@ end
 
 args = license_fetch_args.parse
 
+if args.help_pls?
+  puts license_fetch_args.generate_help_text
+  return
+end
+
 if args.github_key.blank?
-  opoo <<-EOS
+  opoo <<~EOS
     GitHub key is missing. License information will be fetched manually, which means the script will take longer.
     Use the --github-key flag to enter a GitHub API Key
 
@@ -108,6 +113,7 @@ elsif args.formulae.present?
 else
   Formula.to_a
 end
+
 
 report_file = File.open "report.csv", "a+"
 

@@ -3,10 +3,16 @@ require 'parser/current'
 def license_rewrite_args
   Homebrew::CLI::Parser.new do
     usage_banner <<~EOS
-        `license` [<options>]
+      `license-rewrite` [<options>] [<formula>]
 
-        Get or modify the licenses of formulae.
+      Rewrite the `<formula>.rb` file to include license information in 
+      `report.csv`. Specify formulae to rewrite only those formulae, or with 
+      `--tap` to rewrite formulae in a single tap.
     EOS
+    switch "--help-pls",
+           description: "Print help"
+    flag "--tap=",
+         description: "The tap to fetch formula from"
     switch :verbose
     switch :debug
   end
@@ -82,6 +88,11 @@ def bfs(node)
 end
 
 args = license_rewrite_args.parse
+
+if args.help_pls?
+  puts license_fetch_args.generate_help_text
+  return
+end
 
 formulae = if args.tap
   Tap.fetch(args.tap).formula_names.map do |name|
